@@ -46,31 +46,31 @@ const makeOrder = async (req, res) => {
             });
 
             //Get the productId
-            const productIds = item.map(i=>i.productId);
+            const productIds = item.map(i => i.productId);
 
             //Get products from db by using productIds
-            const products= await tx.products.findMany({
-                where:{
-                    id:{in: productIds}
+            const products = await tx.products.findMany({
+                where: {
+                    id: { in: productIds }
                 }
             });
 
             //check the products count and the item count 
-            if(products.length !== item.length){
+            if (products.length !== item.length) {
                 throw new Error("Invalid Product id provided");
             }
-            
+
             //Calculate the total price
 
-            let toatlPrice=0;
+            let toatlPrice = 0;
             //using the find method we getting the first matichig productID and calculating the salary.
-            item.forEach(item =>{
-                const product =products.find(p=>p.id===item.productId);
-                toatlPrice+=Number(product.price)*item.qty;
+            item.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                toatlPrice += Number(product.price) * item.qty;
             });
 
             //create Order
-          const createOrder = await tx.orders.create({
+            const createOrder = await tx.orders.create({
                 data: {
                     amount: toatlPrice,
                     status: "PENDING",
@@ -90,22 +90,45 @@ const makeOrder = async (req, res) => {
                 }
             });
             return createOrder;
-        
+
         });
 
         return res.status(200).json({
-            Message:"Order created successfully"
+            Message: "Order created successfully"
         });
-    }catch(err){
-        console.log("Order Creation API error",err)
+    } catch (err) {
+        console.log("Order Creation API error", err)
 
         return res.status(500).json({
-            Status:"error",
-            Error:err.message
+            Status: "error",
+            Error: err.message
         })
     }
+
+}
+
+//DELETE-productById
+const deleteById = async (req, res) => {
+    try{
+        const product = await prisma.products.delete({
+        where:{
+            id:Number(req.params.id)
+        }
+    });
+    return res.json({
+        status:"Success",
+        message:"Data deleted successfully"
+    })
+    }catch(err){
+        console.log("DeleteById API error",err);
+
+        return res.json({
+            status:"Error",
+            message:err.message
+        });
     
+}
 }
 
 
-module.exports = { insertProducts,makeOrder};
+module.exports = { insertProducts, makeOrder,deleteById};
